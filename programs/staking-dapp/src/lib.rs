@@ -7,6 +7,7 @@ declare_id!("J8qffRvdFDCTC2EFbskn4PjrT8sfqYuEPRuSZcTPx5Ne");
 #[program]
 pub mod staking_dapp {
     use super::*;
+    const DATE:u64 = 1; // 24 * 60 * 60;
     pub fn initialize(ctx: Context<Initialize>) -> Result<()> {
         msg!("Instruction Initialize");
 
@@ -23,7 +24,7 @@ pub mod staking_dapp {
 
     pub fn stake(ctx: Context<Stake>, amount: u64, lockedays: u64) -> Result<()> {
         msg!("Instruction Stake");
-
+        
         let user_info = &mut ctx.accounts.user_info;
         let pool_info = &mut ctx.accounts.pool_info;
 
@@ -31,13 +32,11 @@ pub mod staking_dapp {
             user_info.is_initialized = true;
             user_info.amount = 0;
             user_info.reward = 0;
-            user_info.deposit_slot = 1;
+            user_info.deposit_slot = 0;
         }
 
         let current_timestamp = Clock::get().unwrap().unix_timestamp as u64;
-
-        if current_timestamp - user_info.deposit_slot < user_info.locked_days * 24 * 60 * 60
-            || user_info.deposit_slot == 0
+        if user_info.deposit_slot != 0 && current_timestamp - user_info.deposit_slot < user_info.locked_days * DATE 
         {
             return err!(ErrCode::InvalidSchedule);
         }
@@ -83,8 +82,7 @@ pub mod staking_dapp {
 
         let current_timestamp = Clock::get().unwrap().unix_timestamp as u64;
         
-        if current_timestamp - user_info.deposit_slot < user_info.locked_days * 24 * 60 * 60
-            || user_info.deposit_slot == 0
+        if user_info.deposit_slot != 0 && current_timestamp - user_info.deposit_slot < user_info.locked_days * DATE
         {
             return err!(ErrCode::InvalidSchedule);
         }
@@ -127,8 +125,8 @@ pub mod staking_dapp {
 
         let current_timestamp = Clock::get().unwrap().unix_timestamp as u64;
 
-        if current_timestamp - user_info.deposit_slot < user_info.locked_days * 24 * 60 * 60
-            || user_info.deposit_slot == 0
+        if  user_info.deposit_slot != 0 && 
+            current_timestamp - user_info.deposit_slot < user_info.locked_days * DATE
         {
             return err!(ErrCode::InvalidUnlockAmount);
         }
@@ -171,7 +169,7 @@ pub struct Stake<'info> {
     #[account(mut, seeds=[b"pool", admin.key().as_ref()], bump )]
     pub pool_info: Account<'info, PoolInfo>,
 
-    #[account(init_if_needed, seeds=[b"user", user.key().as_ref()], bump, payer = user, space= std::mem::size_of::<UserInfo>() + 8 )]
+    #[account(init_if_needed, seeds=[b"user", user.key().as_ref()], bump, payer = admin, space= std::mem::size_of::<UserInfo>() + 8 )]
     pub user_info: Account<'info, UserInfo>,
 
     #[account(mut)]
@@ -220,7 +218,7 @@ pub struct Unstake<'info> {
 #[derive(Accounts)]
 pub struct ClaimReward<'info> {
     
-    #[account(mut, seeds=[b"user", user.key().as_ref(), admin.key().as_ref()], bump )]
+    #[account(mut, seeds=[b"user", user.key().as_ref()], bump )]
     pub user_info: Account<'info, UserInfo>,
 
     #[account(mut)]

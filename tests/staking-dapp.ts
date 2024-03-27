@@ -16,6 +16,9 @@ import { getPoolInfoaddress, getUserInfoAddress } from "./utils";
 import bs58 from 'bs58';
 
 describe("Staking Dapp", () => {
+  function sleep(ms: number) {
+		return new Promise((resolve) => setTimeout(resolve, ms));
+	}
   // Configure the client to use the local cluster.
   const provider = anchor.AnchorProvider.env();
   anchor.setProvider(provider);
@@ -90,7 +93,7 @@ describe("Staking Dapp", () => {
     console.log("Your transaction signature", tx);
   });
 
-  it("Staking function", async() => {
+  it("Staking function", async () => {
      const accounts = {
       user: user.publicKey,
       admin: admin.publicKey,
@@ -98,5 +101,35 @@ describe("Staking Dapp", () => {
       adminStakingWallet: adminToken.address,
       stakingToken: mint
      }
+     const tx = await program.methods
+     .stake(
+      new BN(10 * anchor.web3.LAMPORTS_PER_SOL),
+      new BN(15),
+     )
+     .accounts(accounts)
+     .signers([user, admin.payer])
+     .rpc();
+     console.log('transaction', tx);
+     const userInfo = await program.account.userInfo.fetch(userInfoAddress);
+     console.log('userInfo', userInfo);
+  });
+
+  it('Clamin Reward', async () => {
+    await sleep(20000);
+    const accounts = {
+      user: user.publicKey,
+      admin: admin.publicKey,
+      userStakingWallet: userToken.address,
+      adminStakingWallet: adminToken.address,
+      stakingToken: mint,
+    }
+    const tx = await program.methods
+              .claimReward()
+              .accounts(accounts)
+              .signers([user, admin.payer])
+              .rpc();
+    console.log('transaction:', tx);
+    const userInfo = await program.account.userInfo.fetch(userInfoAddress);
+    console.log('userInfo', userInfo);
   });
 });
