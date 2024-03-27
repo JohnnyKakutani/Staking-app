@@ -112,6 +112,8 @@ describe("Staking Dapp", () => {
      console.log('transaction', tx);
      const userInfo = await program.account.userInfo.fetch(userInfoAddress);
      console.log('userInfo', userInfo);
+     const poolInfo = await program.account.poolInfo.fetch(poolInfoAddress);
+     console.log('poolInfo', poolInfo);
   });
 
   it('Clamin Reward', async () => {
@@ -131,5 +133,27 @@ describe("Staking Dapp", () => {
     console.log('transaction:', tx);
     const userInfo = await program.account.userInfo.fetch(userInfoAddress);
     console.log('userInfo', userInfo);
+    const poolInfo = await program.account.poolInfo.fetch(poolInfoAddress);
+    console.log('poolInfo', poolInfo);
+  });
+
+  it('Unstaking Function', async () => {
+    const accounts = {
+      user: user.publicKey,
+      admin: admin.publicKey,
+      userStakingWallet: userToken.address,
+      adminStakingWallet: adminToken.address,
+      stakingToken: mint,
+    }
+    const tx = await program.methods
+              .unstake(new BN(10 * anchor.web3.LAMPORTS_PER_SOL))
+              .accounts(accounts)
+              .signers([user, admin.payer])
+              .rpc();
+    console.log('transaction:', tx);
+    const userInfo = await program.account.userInfo.fetch(userInfoAddress);
+    console.log('userInfo', userInfo);
+    const poolInfo = await program.account.poolInfo.fetch(poolInfoAddress);
+    console.log('poolInfo', poolInfo);
   });
 });
