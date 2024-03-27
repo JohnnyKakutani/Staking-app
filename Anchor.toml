@@ -1,17 +1,20 @@
 [toolchain]
 
 [features]
-seeds = false
+seeds = true
 skip-lint = false
 
 [programs.localnet]
+staking_dapp = "J8qffRvdFDCTC2EFbskn4PjrT8sfqYuEPRuSZcTPx5Ne"
+
+[programs.devnet]
 staking_dapp = "J8qffRvdFDCTC2EFbskn4PjrT8sfqYuEPRuSZcTPx5Ne"
 
 [registry]
 url = "https://api.apr.dev"
 
 [provider]
-cluster = "Localnet"
+cluster = "localnet"
 wallet = "~/.config/solana/id.json"
 
 [scripts]
