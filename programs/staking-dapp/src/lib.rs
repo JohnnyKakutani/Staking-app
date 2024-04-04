@@ -15,8 +15,6 @@ pub mod staking_dapp {
 
         if !pool_info.is_initialized {
             pool_info.is_initialized = true;
-            pool_info.admin = ctx.accounts.admin.key();
-            pool_info.token = ctx.accounts.staking_token.key();
             pool_info.amount = 0;
         }
         Ok(())
@@ -46,7 +44,7 @@ pub mod staking_dapp {
             let cpi_accounts = MintTo {
                 mint: ctx.accounts.staking_token.to_account_info(),
                 to: ctx.accounts.user_staking_wallet.to_account_info(),
-                authority: ctx.accounts.admin_staking_wallet.to_account_info(),
+                authority: ctx.accounts.admin.to_account_info(),
             };
 
             let cpi_program = ctx.accounts.token_program.to_account_info();
@@ -157,9 +155,6 @@ pub struct Initialize<'info> {
     #[account(mut)]
     pub admin: Signer<'info>,
 
-    #[account(mut)]
-    pub staking_token: InterfaceAccount<'info, Mint>,
-    pub token_program: Interface<'info, TokenInterface>,
     pub system_program: Program<'info, System>,
     // pub rent: Sysvar<'info, Rent>,
 }
@@ -248,8 +243,6 @@ pub struct UserInfo {
 #[account]
 pub struct PoolInfo {
     pub is_initialized: bool,
-    pub admin: Pubkey,
-    pub token: Pubkey,
     pub amount: u64,
 }
 
@@ -258,7 +251,7 @@ impl UserInfo {
 }
 
 impl PoolInfo {
-    pub const LEN: usize = 1 + 32 + 32 + 8;
+    pub const LEN: usize = 1 + 8;
 }
 
 
